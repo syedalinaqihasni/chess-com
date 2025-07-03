@@ -127,19 +127,17 @@ BEGIN
   SELECT * INTO black_profile FROM profiles WHERE id = game_record.black_player_id;
   
   -- Determine game category based on time control
-  CASE 
-    WHEN game_record.time_control LIKE '%+%' THEN
-      CASE 
-        WHEN split_part(game_record.time_control, '+', 1)::integer < 3 THEN
-          game_category := 'blitz';
-        WHEN split_part(game_record.time_control, '+', 1)::integer < 15 THEN
-          game_category := 'rapid';
-        ELSE
-          game_category := 'classical';
-      END;
+  IF game_record.time_control LIKE '%+%' THEN
+    IF split_part(game_record.time_control, '+', 1)::integer < 3 THEN
+      game_category := 'blitz';
+    ELSIF split_part(game_record.time_control, '+', 1)::integer < 15 THEN
+      game_category := 'rapid';
     ELSE
-      game_category := 'overall';
-  END CASE;
+      game_category := 'classical';
+    END IF;
+  ELSE
+    game_category := 'overall';
+  END IF;
   
   -- Calculate rating changes
   white_rating_change := calculate_elo_change(white_profile.rating, black_profile.rating, white_result);
